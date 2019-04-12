@@ -4,16 +4,20 @@ class SessionsController < ApplicationController
   def create
     user = User.find_by(username: params[:user][:username])
 
-    encryptedPwd = BCrypt::Password.new(user.password)
-    if user && (user.password == encryptedPwd)
-      session = user.sessions.create
-      cookies.permanent.signed['twitter_session_token'] = {
-        value: session.token,
-        httponly: true
-      }
-      render json: {success: true}, status: 200
+    if user
+      encryptedPwd = BCrypt::Password.new(user.password)
+      if user.password == encryptedPwd
+        session = user.sessions.create
+        cookies.permanent.signed['twitter_session_token'] = {
+          value: session.token,
+          httponly: true
+        }
+        render json: {success: true}, status: :ok
+      else
+        render json: {success: false}, status: :not_found
+      end
     else
-      render json: {success: false}, status: 404
+      render json: {success: false}, status: :not_found
     end
   end
 
